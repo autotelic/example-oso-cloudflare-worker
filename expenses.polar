@@ -1,1 +1,5 @@
-allow(actor: String, "POST", _expense: Expense) if actor.endsWith("@example.com");
+user_in_role(user: User, "accountant") if
+    user.title = "Accountant";
+
+allow(user: User, "view", _expense: Expense) if
+    user_in_role(user, "accountant");
