@@ -1,20 +1,15 @@
-import { Expense, db } from './expense'
-
+import { Expense, db, User, ROLES } from './expense'
+import getOso from './oso'
 // See webpack.config.js setings to
 // properly import .polar files
 import expensesRules from './expenses.polar'
 
 // import { Oso } from 'oso' <-- Not Allowed
 // WebAssembly download and compilation must happen asynchronously.
-async function newOso () {
-  const { Oso } = await import('oso')
-  return new Oso()
-}
 
 async function handleRequest (request) {
-  const oso = await newOso()
-  await oso.registerClass(Expense, 'Expense')
-  
+  const oso = await getOso()
+
   // oso.loadFile is not supported in browsers or webworkers
   // expensesRules is imported as a string
   oso.loadStr(expensesRules)
@@ -33,8 +28,11 @@ async function handleRequest (request) {
   }
 
   const { email } = await request.json()
-  const actor = email
-  const action = request.method
+
+  const actor = new User(email)
+
+  const action = 'view' // default action to be view always.
+
 
   if (await oso.isAllowed(actor, action, expense)) {
     const payload = JSON.stringify({ expense })
